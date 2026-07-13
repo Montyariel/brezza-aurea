@@ -104,13 +104,18 @@
     <div class="app-container">
         <!-- BARRA LATERAL IZQUIERDA: NAVEGACIÓN -->
         <aside class="sidebar">
-            <div class="sidebar-brand">
-                <div class="brand-logo">
-                    <span class="logo-text-fiat">BREZZA</span>
-                    <span class="logo-separator">&amp;</span>
-                    <span class="logo-text-peugeot">AUREA</span>
+            <div class="sidebar-brand" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 32px; padding-left: 8px;">
+                <div>
+                    <div class="brand-logo">
+                        <span class="logo-text-fiat">BREZZA</span>
+                        <span class="logo-separator">&amp;</span>
+                        <span class="logo-text-peugeot">AUREA</span>
+                    </div>
+                    <p class="brand-subtitle" style="margin-top: 4px;">CRM &amp; Seguimiento</p>
                 </div>
-                <p class="brand-subtitle">CRM &amp; Seguimiento</p>
+                <button type="button" id="btn-close-sidebar-inline" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: var(--transition-smooth); margin-top: -12px;" title="Ocultar Menú">
+                    <i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>
+                </button>
             </div>
 
             <!-- FILTRO RÁPIDO DE MARCA -->
@@ -542,6 +547,14 @@
                             <label for="appt-new-client-email">Email</label>
                             <input type="email" id="appt-new-client-email" class="form-control" placeholder="Ej: flor.pena@gmail.com">
                         </div>
+                    </div>
+                </div>
+
+                <!-- Otras citas del cliente seleccionadas dinámicamente -->
+                <div id="appt-client-other-appts" style="display: none; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 20px; background: rgba(255,255,255,0.01); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                    <span style="font-weight: 600; color: var(--accent);">Citas previas/futuras de este cliente:</span>
+                    <div id="appt-client-other-appts-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                        <!-- Dinámico: btn-date-badge -->
                     </div>
                 </div>
 

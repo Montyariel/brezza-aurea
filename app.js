@@ -61,6 +61,7 @@ function startBrezzaAurea() {
     function setupCollapsiblePanels() {
         const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
         const btnToggleAssistant = document.getElementById("btn-toggle-assistant");
+        const btnCloseSidebarInline = document.getElementById("btn-close-sidebar-inline");
         const btnCloseAssistantInline = document.getElementById("btn-close-assistant-inline");
         const appContainer = document.querySelector(".app-container");
 
@@ -83,6 +84,13 @@ function startBrezzaAurea() {
             appContainer.classList.toggle("assistant-hidden");
             localStorage.setItem("fp_assistant_hidden", appContainer.classList.contains("assistant-hidden"));
         });
+
+        if (btnCloseSidebarInline) {
+            btnCloseSidebarInline.addEventListener("click", () => {
+                appContainer.classList.add("sidebar-hidden");
+                localStorage.setItem("fp_sidebar_hidden", "true");
+            });
+        }
 
         if (btnCloseAssistantInline) {
             btnCloseAssistantInline.addEventListener("click", () => {
@@ -1105,6 +1113,11 @@ function startBrezzaAurea() {
             btnToggleNewClient.style.display = "block";
         });
 
+        // Cambio del cliente en citas
+        apptClientSelect.addEventListener("change", () => {
+            updateClientOtherAppointments(apptClientSelect.value);
+        });
+
         // Agregar nota rápida
         document.getElementById("btn-add-note").addEventListener("click", addQuickClientNote);
     }
@@ -1185,6 +1198,8 @@ function startBrezzaAurea() {
                 document.getElementById("appt-type").value = appt.type;
                 document.getElementById("appt-status").value = appt.status;
                 document.getElementById("appt-notes").value = appt.notes || "";
+                
+                updateClientOtherAppointments(appt.clientId);
             }
         } else {
             document.getElementById("modal-title-text").textContent = "Agendar Nueva Cita";
@@ -1192,11 +1207,68 @@ function startBrezzaAurea() {
             document.getElementById("appt-date").value = defaultDate || state.currentDate;
             document.getElementById("appt-time").value = defaultTime || "10:00";
             document.getElementById("appt-status").value = "Pendiente";
+            
+            updateClientOtherAppointments("");
         }
 
         apptModal.style.display = "flex";
         setTimeout(() => apptModal.classList.add("active"), 10);
         lucide.createIcons();
+    }
+
+    function updateClientOtherAppointments(clientId) {
+        const otherApptsContainer = document.getElementById("appt-client-other-appts");
+        const otherApptsList = document.getElementById("appt-client-other-appts-list");
+        if (!otherApptsContainer || !otherApptsList) return;
+
+        otherApptsList.innerHTML = "";
+        
+        if (!clientId) {
+            otherApptsContainer.style.display = "none";
+            return;
+        }
+
+        // Obtener citas de este cliente (excluyendo la cita que se edita actualmente)
+        const currentApptId = document.getElementById("appt-id").value;
+        const appts = db.getAppointments().filter(a => a.clientId === clientId && a.id !== currentApptId && a.status !== "Cancelada");
+
+        if (appts.length === 0) {
+            otherApptsContainer.style.display = "none";
+            return;
+        }
+
+        otherApptsContainer.style.display = "block";
+        appts.forEach(appt => {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "btn-date-badge";
+            
+            const [y, m, d] = appt.date.split("-");
+            const formattedDate = `${d}/${m}/${y}`;
+            
+            btn.innerHTML = `<i data-lucide="calendar" style="width:12px; height:12px;"></i> ${formattedDate} (${appt.time} hs - ${appt.type})`;
+            btn.title = `Hacé clic para cargar esta fecha y hora`;
+            
+            btn.addEventListener("click", () => {
+                document.getElementById("appt-date").value = appt.date;
+                document.getElementById("appt-time").value = appt.time;
+                document.getElementById("appt-type").value = appt.type;
+                
+                // Feedback visual rápido
+                btn.style.borderColor = "var(--color-success)";
+                btn.style.color = "var(--color-success)";
+                setTimeout(() => {
+                    btn.style.borderColor = "";
+                    btn.style.color = "";
+                }, 1000);
+            });
+
+            otherApptsList.appendChild(btn);
+        });
+
+        lucide.createIcons({
+            container: otherApptsList
+        });
     }
 
     function closeApptModal() {

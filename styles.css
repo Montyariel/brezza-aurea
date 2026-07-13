@@ -1879,3 +1879,36 @@ label {
     height: 18px;
 }
 
+/* Ocultar botones flotantes de la cabecera cuando los paneles respectivos están abiertos */
+.app-container:not(.sidebar-hidden) #btn-toggle-sidebar {
+    display: none !important;
+}
+
+.app-container:not(.assistant-hidden) #btn-toggle-assistant {
+    display: none !important;
+}
+
+/* Etiquetas de fechas de otras citas del cliente en modal */
+.btn-date-badge {
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition: var(--transition-smooth);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.btn-date-badge:hover {
+    background-color: var(--accent-tint);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+}
+
