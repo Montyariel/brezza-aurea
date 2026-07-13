@@ -98,10 +98,19 @@ h1, h2, h3, h4, h5, h6 {
    ========================================== */
 .app-container {
     display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr var(--assistant-width);
+    grid-template-columns: var(--sidebar-current-width, var(--sidebar-width)) 1fr var(--assistant-current-width, var(--assistant-width));
     height: 100vh;
     width: 100vw;
     overflow: hidden;
+    transition: grid-template-columns 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-container.sidebar-hidden {
+    --sidebar-current-width: 0px;
+}
+
+.app-container.assistant-hidden {
+    --assistant-current-width: 0px;
 }
 
 /* ==========================================
@@ -114,6 +123,13 @@ h1, h2, h3, h4, h5, h6 {
     flex-direction: column;
     padding: 24px 16px;
     height: 100%;
+    width: var(--sidebar-width);
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-container.sidebar-hidden .sidebar {
+    margin-left: calc(-1 * var(--sidebar-width));
+    pointer-events: none;
 }
 
 .sidebar-brand {
@@ -1126,6 +1142,13 @@ h1, h2, h3, h4, h5, h6 {
     height: 100vh;
     max-height: 100vh;
     overflow: hidden;
+    width: var(--assistant-width);
+    transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-container.assistant-hidden .assistant-panel {
+    margin-right: calc(-1 * var(--assistant-width));
+    pointer-events: none;
 }
 
 .assistant-header {
@@ -1828,5 +1851,31 @@ label {
     --border-color: #21263f;
     --text-main: #e2e8f0;
     --text-muted: #8892b0;
+}
+
+/* Botón interactivo de colapso de paneles laterales */
+.btn-toggle-panel {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    width: 38px;
+    height: 38px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.btn-toggle-panel:hover {
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--text-main);
+    border-color: var(--accent);
+}
+
+.btn-toggle-panel i {
+    width: 18px;
+    height: 18px;
 }
 

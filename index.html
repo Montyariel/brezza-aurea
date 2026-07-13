@@ -181,17 +181,25 @@
         <main class="main-content">
             <!-- CABECERA SUPERIOR -->
             <header class="main-header">
-                <div class="header-left">
-                    <h1 id="page-title">Dashboard General</h1>
-                    <p class="text-muted" id="current-date-text">Domingo, 21 de Junio de 2026</p>
+                <div class="header-left" style="display: flex; align-items: center; gap: 16px;">
+                    <button class="btn-toggle-panel" id="btn-toggle-sidebar" title="Mostrar/Ocultar Menú">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div>
+                        <h1 id="page-title" style="margin: 0;">Dashboard General</h1>
+                        <p class="text-muted" id="current-date-text" style="margin: 2px 0 0 0;">Domingo, 21 de Junio de 2026</p>
+                    </div>
                 </div>
-                <div class="header-right">
+                <div class="header-right" style="display: flex; align-items: center; gap: 16px;">
                     <div class="search-bar">
                         <i data-lucide="search"></i>
                         <input type="text" id="global-search" placeholder="Buscar chasis, cliente, auto...">
                     </div>
                     <button class="btn btn-primary" id="btn-quick-appointment">
                         <i data-lucide="plus"></i> Nueva Cita
+                    </button>
+                    <button class="btn-toggle-panel" id="btn-toggle-assistant" title="Mostrar/Ocultar Asistente">
+                        <i data-lucide="sparkles"></i>
                     </button>
                 </div>
             </header>
@@ -451,14 +459,19 @@
 
         <!-- PANEL LATERAL DERECHO: ASISTENTE NICO -->
         <aside class="assistant-panel">
-            <div class="assistant-header">
-                <div class="assistant-avatar">
-                    <i data-lucide="sparkles"></i>
+            <div class="assistant-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="assistant-avatar">
+                        <i data-lucide="sparkles"></i>
+                    </div>
+                    <div class="assistant-title-info">
+                        <h4>Brezza Aurea</h4>
+                        <span class="status-indicator online">Online</span>
+                    </div>
                 </div>
-                <div class="assistant-title-info">
-                    <h4>Brezza Aurea</h4>
-                    <span class="status-indicator online">Online</span>
-                </div>
+                <button type="button" id="btn-close-assistant-inline" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: var(--transition-smooth);" title="Ocultar Asistente">
+                    <i data-lucide="chevron-right" style="width: 20px; height: 20px;"></i>
+                </button>
             </div>
             
             <div class="assistant-chat-container">

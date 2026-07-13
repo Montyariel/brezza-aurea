@@ -48,12 +48,47 @@ function startBrezzaAurea() {
             
             // Renderizado inicial
             updateDateDisplay();
+            setupCollapsiblePanels();
             
             // Inicializar Lucide Icons
             lucide.createIcons();
         } catch (err) {
             alert("Error al iniciar Brezza Aurea:\n" + err.message + "\n" + err.stack);
             console.error(err);
+        }
+    }
+
+    function setupCollapsiblePanels() {
+        const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
+        const btnToggleAssistant = document.getElementById("btn-toggle-assistant");
+        const btnCloseAssistantInline = document.getElementById("btn-close-assistant-inline");
+        const appContainer = document.querySelector(".app-container");
+
+        if (!btnToggleSidebar || !btnToggleAssistant || !appContainer) return;
+
+        // Cargar preferencias guardadas
+        if (localStorage.getItem("fp_sidebar_hidden") === "true") {
+            appContainer.classList.add("sidebar-hidden");
+        }
+        if (localStorage.getItem("fp_assistant_hidden") === "true") {
+            appContainer.classList.add("assistant-hidden");
+        }
+
+        btnToggleSidebar.addEventListener("click", () => {
+            appContainer.classList.toggle("sidebar-hidden");
+            localStorage.setItem("fp_sidebar_hidden", appContainer.classList.contains("sidebar-hidden"));
+        });
+
+        btnToggleAssistant.addEventListener("click", () => {
+            appContainer.classList.toggle("assistant-hidden");
+            localStorage.setItem("fp_assistant_hidden", appContainer.classList.contains("assistant-hidden"));
+        });
+
+        if (btnCloseAssistantInline) {
+            btnCloseAssistantInline.addEventListener("click", () => {
+                appContainer.classList.add("assistant-hidden");
+                localStorage.setItem("fp_assistant_hidden", "true");
+            });
         }
     }
 
