@@ -1836,9 +1836,9 @@ function startBrezzaAurea() {
         try {
             crear_evento(tipo, fecha, hora, targetClient.id, vehiculoId, "Agendado por asistente virtual (chat)");
             renderAll();
-            return `¡Golazo! Agendé la cita tipo <strong>${tipo}</strong> para <strong>${targetClient.name}</strong> el día <strong>${fecha} a las ${hora} hs</strong>. ¡Ya figura en el calendario! ⚽🔥`;
+            return `¡Cita agendada con éxito! Agendé la cita tipo <strong>${tipo}</strong> para <strong>${targetClient.name}</strong> el día <strong>${fecha} a las ${hora} hs</strong>. ¡Ya figura en el calendario! 🚗📅`;
         } catch (err) {
-            return `¡Ojo crack! No pude agendar la cita. Razón comercial: <strong>${err.message}</strong> ❌`;
+            return `¡Atención! No pude agendar la cita. Razón comercial: <strong>${err.message}</strong> ❌`;
         }
     }
 

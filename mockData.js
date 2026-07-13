@@ -742,7 +742,7 @@ class Database {
     addUser(user) {
         const users = this.getUsers();
         if (users.find(u => u.username.toLowerCase() === user.username.toLowerCase())) {
-            throw new Error("El nombre de usuario ya existe, crack.");
+            throw new Error("El nombre de usuario ya existe.");
         }
         const newUser = {
             id: `usr-${Date.now()}`,
