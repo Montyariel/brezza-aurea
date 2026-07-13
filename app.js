@@ -8,7 +8,13 @@ function startBrezzaAurea() {
         const state = {
         currentView: "dashboard",
         selectedBrandFilter: "all", // "all", "fiat", "peugeot"
-        currentDate: "2026-06-21", // Fecha base simulada
+        currentDate: (() => {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        })(),
         draggedClientId: null
     };
 
@@ -1568,8 +1574,9 @@ function startBrezzaAurea() {
 
     function updateDateDisplay() {
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const dummyDate = new Date("2026-06-21T00:00:00");
-        currentDateText.textContent = dummyDate.toLocaleDateString('es-AR', options);
+        const [y, m, d] = state.currentDate.split("-");
+        const dateObj = new Date(y, m - 1, d);
+        currentDateText.textContent = dateObj.toLocaleDateString('es-AR', options);
     }
 
     // ============================================================================
@@ -1726,10 +1733,16 @@ function startBrezzaAurea() {
     // --- DETALLE DE LÓGICAS NLP ---
 
     function procesarBriefingMatutino() {
-        const hoy = state.currentDate; // "2026-06-21"
+        const hoy = state.currentDate;
         const apptsHoy = db.getAppointments().filter(a => a.date === hoy && a.status !== "Cancelada");
         
-        let reply = `<strong>Briefing Matutino - Domingo 21 de Junio</strong> 🚗🌅<br><br>`;
+        const [y, m, d] = hoy.split("-");
+        const dateObj = new Date(y, m - 1, d);
+        const options = { weekday: 'long', day: 'numeric', month: 'long' };
+        const formattedDate = dateObj.toLocaleDateString('es-AR', options);
+        const capitalizedDate = formattedDate.charAt(0).toUpperCase() + formattedDate.slice(1);
+
+        let reply = `<strong>Briefing Matutino - ${capitalizedDate}</strong> 🚗🌅<br><br>`;
         
         if (apptsHoy.length === 0) {
             reply += `¡Hola crack! Hoy no tenemos actividades registradas en la agenda. ¡Buen momento para llamar leads desde el CRM! 🚗`;
