@@ -1681,7 +1681,6 @@ label {
 .card-face.active {
     opacity: 1;
     pointer-events: auto;
-    position: relative;
 }
 
 .register-face {
