@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert("Error en el navegador:\n" + message + "\nFuente: " + source + "\nLínea: " + lineno + "\nColumna: " + colno + "\nDetalle: " + (error ? error.stack : 'Sin detalle'));
+            return false;
+        };
+        window.onunhandledrejection = function(event) {
+            alert("Promesa rechazada no controlada:\n" + event.reason);
+        };
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brezza Aurea | CRM & Seguimiento</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- CSS Estilos -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Supabase JS Client SDK CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="theme-mixed">
+    <!-- PANTALLA DE LOGIN / REGISTRO ANIMADA -->
+    <div id="login-screen" class="login-screen-overlay">
+        <div class="login-background-animations">
+            <div class="blob blob-1"></div>
+            <div class="blob blob-2"></div>
+        </div>
+        
+        <div class="login-container">
+            <div class="login-card" id="login-card">
+                <!-- CARA 1: INICIAR SESIÓN -->
+                <div class="card-face login-face active" id="login-face-panel">
+                    <div class="login-logo-container">
+                        <span class="login-logo-main">Brezza Aurea</span>
+                        <p class="login-logo-sub">CRM &amp; Seguimiento</p>
+                    </div>
+                    
+                    <form id="form-login-auth">
+                        <div class="form-group-login">
+                            <label><i data-lucide="user"></i> Usuario</label>
+                            <input type="text" id="login-username" placeholder="Ingresá tu usuario..." required autocomplete="username">
+                        </div>
+                        <div class="form-group-login">
+                            <label><i data-lucide="lock"></i> Contraseña</label>
+                            <input type="password" id="login-password" placeholder="Ingresá tu clave..." required autocomplete="current-password">
+                        </div>
+                        
+                        <div class="login-error-message" id="login-error-msg"></div>
+                        
+                        <button type="submit" class="btn-login-submit">
+                            <span>Ingresar</span> <i data-lucide="log-in"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="login-switch-action">
+                        <span>¿No tenés usuario?</span>
+                        <button id="btn-switch-to-register">Crear cuenta</button>
+                    </div>
+                </div>
+                
+                <!-- CARA 2: REGISTRARSE -->
+                <div class="card-face register-face" id="register-face-panel">
+                    <div class="login-logo-container">
+                        <span class="login-logo-main">Nuevo Usuario</span>
+                        <p class="login-logo-sub">Sumate a Brezza Aurea</p>
+                    </div>
+                    
+                    <form id="form-register-auth">
+                        <div class="form-group-login">
+                            <label><i data-lucide="user-cog"></i> Nombre Completo</label>
+                            <input type="text" id="register-name" placeholder="Ej: Tatiana Vera" required>
+                        </div>
+                        <div class="form-group-login">
+                            <label><i data-lucide="user"></i> Elegir Usuario</label>
+                            <input type="text" id="register-username" placeholder="Ej: tati.vera" required autocomplete="username">
+                        </div>
+                        <div class="form-group-login">
+                            <label><i data-lucide="lock"></i> Crear Contraseña</label>
+                            <input type="password" id="register-password" placeholder="Escribí una contraseña..." required autocomplete="new-password">
+                        </div>
+                        
+                        <div class="login-error-message" id="register-error-msg"></div>
+                        
+                        <button type="submit" class="btn-login-submit register-btn">
+                            <span>Registrar y Confirmar</span> <i data-lucide="user-plus"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="login-switch-action">
+                        <span>¿Ya tenés cuenta?</span>
+                        <button id="btn-switch-to-login">Iniciar sesión</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- BARRA LATERAL IZQUIERDA: NAVEGACIÓN -->
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-logo">
+                    <span class="logo-text-fiat">BREZZA</span>
+                    <span class="logo-separator">&amp;</span>
+                    <span class="logo-text-peugeot">AUREA</span>
+                </div>
+                <p class="brand-subtitle">CRM &amp; Seguimiento</p>
+            </div>
+
+            <!-- FILTRO RÁPIDO DE MARCA -->
+            <div class="brand-selector">
+                <button class="brand-btn active" id="btn-brand-all" data-brand="all">
+                    <i data-lucide="layout-grid"></i> Ambos
+                </button>
+                <button class="brand-btn" id="btn-brand-fiat" data-brand="fiat">
+                    <span class="brand-dot dot-fiat"></span> Fiat
+                </button>
+                <button class="brand-btn" id="btn-brand-peugeot" data-brand="peugeot">
+                    <span class="brand-dot dot-peugeot"></span> Peugeot
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="#dashboard" class="nav-link active" id="nav-dashboard">
+                            <i data-lucide="gauge"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#agenda" class="nav-link" id="nav-agenda">
+                            <i data-lucide="calendar"></i>
+                            <span>Agenda Diaria</span>
+                            <span class="badge badge-accent" id="badge-agenda-count">0</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#crm" class="nav-link" id="nav-crm">
+                            <i data-lucide="users"></i>
+                            <span>Clientes & Leads</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#stock" class="nav-link" id="nav-stock">
+                            <i data-lucide="database"></i>
+                            <span>Stock 0km</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#ventas" class="nav-link" id="nav-ventas">
+                            <i data-lucide="file-text"></i>
+                            <span>Ventas & Doc.</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="avatar" id="sidebar-user-avatar">A</div>
+                    <div class="user-info">
+                        <span class="user-name" id="sidebar-user-name">Ariel</span>
+                        <span class="user-role">Administrador</span>
+                    </div>
+                </div>
+                <button class="btn-logout" id="btn-logout" title="Cerrar Sesión" style="background: rgba(255, 94, 98, 0.1); border: none; color: #ff5e62; cursor: pointer; padding: 8px; display: flex; align-items: center; justify-content: center; margin-top: 10px; width: 100%; border-radius: 6px; transition: all 0.2s; font-weight: 500;">
+                    <i data-lucide="log-out" style="width: 16px; height: 16px; margin-right: 8px;"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- CONTENEDOR PRINCIPAL -->
+        <main class="main-content">
+            <!-- CABECERA SUPERIOR -->
+            <header class="main-header">
+                <div class="header-left">
+                    <h1 id="page-title">Dashboard General</h1>
+                    <p class="text-muted" id="current-date-text">Domingo, 21 de Junio de 2026</p>
+                </div>
+                <div class="header-right">
+                    <div class="search-bar">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="global-search" placeholder="Buscar chasis, cliente, auto...">
+                    </div>
+                    <button class="btn btn-primary" id="btn-quick-appointment">
+                        <i data-lucide="plus"></i> Nueva Cita
+                    </button>
+                </div>
+            </header>
+
+            <!-- CONTENEDOR DE PANTALLAS (SPA) -->
+            <div class="view-container">
+                <!-- SECCIÓN 1: DASHBOARD -->
+                <section id="view-dashboard" class="app-view active">
+                    <!-- METRICAS CLAVE -->
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span class="metric-title">Citas de Hoy</span>
+                                <div class="metric-icon bg-blue-tint"><i data-lucide="calendar-check" class="text-blue"></i></div>
+                            </div>
+                            <div class="metric-value" id="metric-citas-hoy">0</div>
+                            <div class="metric-footer">
+                                <span class="text-success"><i data-lucide="trending-up"></i> Activas hoy</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span class="metric-title">Leads Activos</span>
+                                <div class="metric-icon bg-orange-tint"><i data-lucide="phone-call" class="text-orange"></i></div>
+                            </div>
+                            <div class="metric-value" id="metric-seguimientos">0</div>
+                            <div class="metric-footer">
+                                <span class="text-warning">En proceso comercial</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span class="metric-title">Patentamientos / Cierres</span>
+                                <div class="metric-icon bg-green-tint"><i data-lucide="award" class="text-green"></i></div>
+                            </div>
+                            <div class="metric-value" id="metric-cierres">0</div>
+                            <div class="metric-footer">
+                                <span class="text-success"><i data-lucide="chevron-up"></i> Unidades reservadas</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span class="metric-title">Stock Disponible</span>
+                                <div class="metric-icon bg-purple-tint"><i data-lucide="car" class="text-purple"></i></div>
+                            </div>
+                            <div class="metric-value" id="metric-stock-disp">0</div>
+                            <div class="metric-footer">
+                                <span class="text-muted">Unidades libres</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CONTENIDO SECUNDARIO DEL DASHBOARD -->
+                    <div class="dashboard-details-grid">
+                        <!-- PRÓXIMAS ACTIVIDADES -->
+                        <div class="detail-card card-upcoming">
+                            <div class="card-header">
+                                <h3>Próximas Actividades Prioritarias</h3>
+                                <button class="btn-text" id="dashboard-see-all-appointments">Ver todas</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="activities-list" id="dashboard-upcoming-list">
+                                    <!-- Dinámico -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DISTRIBUCIÓN POR MODELOS / ESTADÍSTICAS -->
+                        <div class="detail-card card-models">
+                            <div class="card-header">
+                                <h3>Modelos más Cotizados</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="models-stats-list" id="dashboard-models-list">
+                                    <!-- Dinámico -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECCIÓN 2: AGENDA DIARIA -->
+                <section id="view-agenda" class="app-view">
+                    <div class="agenda-layout">
+                        <!-- Calendario / Línea de tiempo -->
+                        <div class="agenda-timeline-card">
+                            <div class="agenda-timeline-header">
+                                <div class="timeline-navigation">
+                                    <button class="btn btn-icon" id="btn-prev-day"><i data-lucide="chevron-left"></i></button>
+                                    <span class="current-date-display" id="agenda-date-display">Hoy</span>
+                                    <button class="btn btn-icon" id="btn-next-day"><i data-lucide="chevron-right"></i></button>
+                                </div>
+                                <div class="timeline-filters">
+                                    <select id="filter-agenda-status" class="form-select">
+                                        <option value="all">Todos los estados</option>
+                                        <option value="Pendiente">Pendiente</option>
+                                        <option value="Realizada">Realizada</option>
+                                        <option value="Cancelada">Cancelada</option>
+                                        <option value="Reprogramado">Reprogramado</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="agenda-timeline" id="agenda-hours-container">
+                                <!-- Dinámico: bloques de 08:00 a 20:00 -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECCIÓN 3: CLIENTES & LEADS (KANBAN) -->
+                <section id="view-crm" class="app-view">
+                    <div class="crm-header-actions">
+                        <div class="crm-info">
+                            <p class="text-muted">Arrastrá las tarjetas para avanzar a los clientes en el embudo comercial</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" id="btn-add-client">
+                            <i data-lucide="user-plus"></i> Nuevo Cliente
+                        </button>
+                    </div>
+
+                    <div class="kanban-board">
+                        <!-- Contacto Inicial -->
+                        <div class="kanban-column" data-stage="contacto">
+                            <div class="kanban-column-header">
+                                <div class="header-title-container">
+                                    <span class="stage-dot dot-contacto"></span>
+                                    <h3>Contacto Inicial</h3>
+                                </div>
+                                <span class="column-count" id="count-stage-contacto">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-contacto" data-stage="contacto">
+                                <!-- Tarjetas de clientes -->
+                            </div>
+                        </div>
+
+                        <!-- Presupuesto -->
+                        <div class="kanban-column" data-stage="presupuesto">
+                            <div class="kanban-column-header">
+                                <div class="header-title-container">
+                                    <span class="stage-dot dot-presupuesto"></span>
+                                    <h3>Presupuesto</h3>
+                                </div>
+                                <span class="column-count" id="count-stage-presupuesto">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-presupuesto" data-stage="presupuesto">
+                                <!-- Tarjetas de clientes -->
+                            </div>
+                        </div>
+
+                        <!-- Cita / Test Drive -->
+                        <div class="kanban-column" data-stage="entrevista">
+                            <div class="kanban-column-header">
+                                <div class="header-title-container">
+                                    <span class="stage-dot dot-entrevista"></span>
+                                    <h3>Cita / Test Drive</h3>
+                                </div>
+                                <span class="column-count" id="count-stage-entrevista">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-entrevista" data-stage="entrevista">
+                                <!-- Tarjetas de clientes -->
+                            </div>
+                        </div>
+
+                        <!-- Cierre / Boleto -->
+                        <div class="kanban-column" data-stage="cierre">
+                            <div class="kanban-column-header">
+                                <div class="header-title-container">
+                                    <span class="stage-dot dot-cierre"></span>
+                                    <h3>Boleto / Cierre</h3>
+                                </div>
+                                <span class="column-count" id="count-stage-cierre">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-cierre" data-stage="cierre">
+                                <!-- Tarjetas de clientes -->
+                            </div>
+                        </div>
+
+                        <!-- Entrega de Unidad -->
+                        <div class="kanban-column" data-stage="entrega">
+                            <div class="kanban-column-header">
+                                <div class="header-title-container">
+                                    <span class="stage-dot dot-entrega"></span>
+                                    <h3>Entrega de Unidad</h3>
+                                </div>
+                                <span class="column-count" id="count-stage-entrega">0</span>
+                            </div>
+                            <div class="kanban-cards-container" id="container-stage-entrega" data-stage="entrega">
+                                <!-- Tarjetas de clientes -->
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECCIÓN 4: STOCK STELLANTIS -->
+                <section id="view-stock" class="app-view">
+                    <div class="table-container-header">
+                        <div class="header-info">
+                            <p class="text-muted">Unidades disponibles, reservadas y asignadas de Fiat y Peugeot</p>
+                        </div>
+                    </div>
+                    <div class="table-card">
+                        <table class="data-table" id="table-stock-vehicles">
+                            <thead>
+                                <tr>
+                                    <th>Marca</th>
+                                    <th>Modelo & Versión</th>
+                                    <th>N° Chasis (VIN)</th>
+                                    <th>Motor</th>
+                                    <th>Color</th>
+                                    <th>Origen</th>
+                                    <th>Ubicación</th>
+                                    <th>Estado Stock</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-tbody">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- SECCIÓN 5: VENTAS Y DOCUMENTACIÓN -->
+                <section id="view-ventas" class="app-view">
+                    <div class="crm-header-actions">
+                        <div class="crm-info">
+                            <p class="text-muted">Gestión de facturación, gestoría de patentamiento y control de PDI (Inspección Pre-Entrega)</p>
+                        </div>
+                        <button class="btn btn-secondary btn-sm" id="btn-add-operation">
+                            <i data-lucide="file-plus"></i> Nueva Venta
+                        </button>
+                    </div>
+                    <div class="table-card">
+                        <table class="data-table" id="table-sales-operations">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Vehículo Reservado</th>
+                                    <th>N° Chasis (VIN)</th>
+                                    <th>Método de Pago</th>
+                                    <th>Estado de Documentación</th>
+                                    <th>PDI Estado</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ventas-tbody">
+                                <!-- Dinámico -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- PANEL LATERAL DERECHO: ASISTENTE NICO -->
+        <aside class="assistant-panel">
+            <div class="assistant-header">
+                <div class="assistant-avatar">
+                    <i data-lucide="sparkles"></i>
+                </div>
+                <div class="assistant-title-info">
+                    <h4>Brezza Aurea</h4>
+                    <span class="status-indicator online">Online</span>
+                </div>
+            </div>
+            
+            <div class="assistant-chat-container">
+                <div class="chat-messages" id="chat-messages-container">
+                    <div class="chat-bubble assistant">
+                        <p>¡Hola crack! Bienvenido a <strong>Brezza Aurea</strong>. Estoy listo para ayudarte con el seguimiento de tus leads, agendar test drives y potenciar las ventas hoy. 🚗📈</p>
+                    </div>
+                    <div class="chat-bubble assistant">
+                        <p>Escribí <strong>/hoy</strong> o tocá el botón de abajo para el resumen matutino de prioridades.</p>
+                        <button class="btn btn-secondary btn-sm" id="btn-trigger-briefing" style="margin-top: 8px; width: 100%;">
+                            <i data-lucide="sunrise"></i> Briefing de Hoy
+                        </button>
+                    </div>
+                    <div class="chat-bubble assistant">
+                        <p>Tareas críticas de hoy:</p>
+                        <ul class="assistant-todo-list" id="assistant-priority-todo">
+                            <!-- Dinámico -->
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="chat-input-area">
+                    <input type="text" id="assistant-input-text" placeholder="Preguntame o pedime reprogramar algo...">
+                    <button class="btn btn-icon" id="btn-send-chat"><i data-lucide="send"></i></button>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- MODAL: AGENDAR CITA (NUEVA O EDICIÓN) -->
+    <div class="modal-backdrop" id="modal-appointment">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modal-title-text">Agendar Nueva Cita</h3>
+                <button class="btn-close-modal" id="btn-close-appointment"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-appointment">
+                <input type="hidden" id="appt-id">
+                
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <label for="appt-client-select">Seleccionar Cliente (Lead)</label>
+                        <button type="button" id="btn-toggle-new-client-fields" class="btn-text" style="font-size: 0.75rem; font-weight: 600; color: var(--accent); background: transparent; border: none; cursor: pointer;">
+                            + Registrar Nuevo Cliente
+                        </button>
+                    </div>
+                    <select id="appt-client-select" class="form-select" required>
+                        <!-- Cargado dinámicamente -->
+                    </select>
+                </div>
+
+                <!-- Campos ocultos para crear un nuevo cliente al vuelo -->
+                <div id="new-client-inline-fields" style="display: none; background: rgba(255, 255, 255, 0.02); padding: 15px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 20px; gap: 12px; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px; margin-bottom: 4px;">
+                        <span style="font-size: 0.8rem; font-weight: 600; color: var(--accent);">DATOS DEL NUEVO CLIENTE</span>
+                        <button type="button" id="btn-cancel-new-client-inline" class="btn-text" style="font-size: 0.75rem; color: var(--text-muted); background: transparent; border: none; cursor: pointer;">Cancelar</button>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label for="appt-new-client-name">Nombre Completo</label>
+                        <input type="text" id="appt-new-client-name" class="form-control" placeholder="Ej: Florencia Peña">
+                    </div>
+                    <div class="form-row" style="margin-bottom: 0;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="appt-new-client-phone">Teléfono</label>
+                            <input type="text" id="appt-new-client-phone" class="form-control" placeholder="Ej: 11-4444-9999">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="appt-new-client-email">Email</label>
+                            <input type="email" id="appt-new-client-email" class="form-control" placeholder="Ej: flor.pena@gmail.com">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="appt-brand">Marca</label>
+                        <select id="appt-brand" class="form-select" required>
+                            <option value="Fiat">Fiat</option>
+                            <option value="Peugeot">Peugeot</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="appt-model">Modelo</label>
+                        <select id="appt-model" class="form-select" required>
+                            <!-- Cargado dinámicamente -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="appt-vehicle-select">Asignar Vehículo de Stock (Opcional)</label>
+                    <select id="appt-vehicle-select" class="form-select">
+                        <!-- Cargado dinámicamente -->
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="appt-date">Fecha</label>
+                        <input type="date" id="appt-date" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="appt-time">Hora</label>
+                        <input type="time" id="appt-time" class="form-control" required min="08:00" max="20:00" step="1800">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="appt-type">Tipo de Actividad</label>
+                        <select id="appt-type" class="form-select" required>
+                            <option value="Llamado de Seguimiento">Llamado de Seguimiento</option>
+                            <option value="Test Drive">Test Drive</option>
+                            <option value="Cita en Salón">Cita en Salón</option>
+                            <option value="Entrega de 0km">Entrega de 0km</option>
+                            <option value="Trámite de Gestoría">Trámite de Gestoría</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="appt-status">Estado</label>
+                        <select id="appt-status" class="form-select" required>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Realizada">Realizada</option>
+                            <option value="Cancelada">Cancelada</option>
+                            <option value="Reprogramado">Reprogramado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="appt-notes">Descripción / Observaciones</label>
+                    <textarea id="appt-notes" class="form-control" rows="3" placeholder="Detalles de la cita..."></textarea>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-appt">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cita</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: AGREGAR / EDITAR CLIENTE -->
+    <div class="modal-backdrop" id="modal-client">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modal-client-title">Detalle del Cliente</h3>
+                <button class="btn-close-modal" id="btn-close-client-modal"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-client">
+                <input type="hidden" id="client-id">
+                
+                <div class="form-group">
+                    <label for="client-name">Nombre Completo</label>
+                    <input type="text" id="client-name" class="form-control" placeholder="Ej: Lionel Messi" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="client-phone">Teléfono</label>
+                        <input type="tel" id="client-phone" class="form-control" placeholder="Ej: 11-5555-5555" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-email">Email</label>
+                        <input type="email" id="client-email" class="form-control" placeholder="Ej: leo@stellantis.com">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="client-brand">Marca de Interés</label>
+                        <select id="client-brand" class="form-select" required>
+                            <option value="Fiat">Fiat</option>
+                            <option value="Peugeot">Peugeot</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-model">Modelo de Interés</label>
+                        <select id="client-model" class="form-select" required>
+                            <!-- Dinámico -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="client-origin">Origen del Lead</label>
+                        <select id="client-origin" class="form-select" required>
+                            <option value="Web">Página Web</option>
+                            <option value="Instagram">Instagram / Redes</option>
+                            <option value="Salón">Contacto en Salón</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="client-stage">Etapa del Embudo</label>
+                        <select id="client-stage" class="form-select" required>
+                            <option value="contacto">Contacto Inicial</option>
+                            <option value="presupuesto">Presupuesto</option>
+                            <option value="entrevista">Cita / Test Drive</option>
+                            <option value="cierre">Boleto / Cierre</option>
+                            <option value="entrega">Entrega de Unidad</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="client-birthday">Fecha de Cumpleaños</label>
+                    <input type="date" id="client-birthday" class="form-control">
+                </div>
+
+                <div class="client-history-section" id="client-history-box">
+                    <h4>Historial de Notas</h4>
+                    <div class="history-timeline" id="client-history-list">
+                        <!-- Notas históricas -->
+                    </div>
+                    <div class="add-note-box">
+                        <input type="text" id="new-interaction-note" class="form-control form-control-sm" placeholder="Escribir comentario rápido...">
+                        <button type="button" class="btn btn-primary btn-sm" id="btn-add-note">Añadir</button>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-client">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: REGISTRAR / EDITAR VENTA (OPERACION) -->
+    <div class="modal-backdrop" id="modal-operation">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 id="modal-op-title">Registrar Nueva Venta</h3>
+                <button class="btn-close-modal" id="btn-close-op-modal"><i data-lucide="x"></i></button>
+            </div>
+            <form id="form-operation">
+                <input type="hidden" id="op-id">
+                
+                <div class="form-group">
+                    <label for="op-client-select">Comprador</label>
+                    <select id="op-client-select" class="form-select" required>
+                        <!-- Dinámico -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="op-vehicle-select">Asignar Auto de Stock</label>
+                    <select id="op-vehicle-select" class="form-select" required>
+                        <!-- Dinámico -->
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="op-payment">Método de Pago</label>
+                        <select id="op-payment" class="form-select" required>
+                            <option value="Contado">Contado</option>
+                            <option value="Financiado Stellantis">Financiado Stellantis</option>
+                            <option value="Toma de Usado">Toma de Usado</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="op-doc">Estado de Documentación</label>
+                        <select id="op-doc" class="form-select" required>
+                            <option value="En Gestoría">En Gestoría (Pendiente)</option>
+                            <option value="Patentado">Patentado (Listo)</option>
+                            <option value="PDI Listo">PDI Listo (Facturado y Revisado)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-op">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Operación</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JS Scripts -->
+    <script src="config.js?v=3"></script>
+    <script src="mockData.js?v=3"></script>
+    <script src="app.js?v=3"></script>
+</body>
+</html>
