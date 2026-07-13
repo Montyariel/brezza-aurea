@@ -105,13 +105,32 @@
         <!-- BARRA LATERAL IZQUIERDA: NAVEGACIÓN -->
         <aside class="sidebar">
             <div class="sidebar-brand" style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 32px; padding-left: 8px;">
-                <div>
-                    <div class="brand-logo">
-                        <span class="logo-text-fiat">BREZZA</span>
-                        <span class="logo-separator">&amp;</span>
-                        <span class="logo-text-peugeot">AUREA</span>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <!-- EMBLEMA 3D ROTATIVO -->
+                    <div class="brand-emblem-container">
+                        <div class="brand-emblem-inner">
+                            <div class="emblem-face fiat-face">
+                                <svg viewBox="0 0 100 100" class="emblem-svg">
+                                    <circle cx="50" cy="50" r="44" fill="#be123c" stroke="#ffffff" stroke-width="4"/>
+                                    <text x="50" y="58" font-family="'Outfit', 'Inter', sans-serif" font-weight="900" font-size="22" fill="#ffffff" text-anchor="middle" letter-spacing="2">FIAT</text>
+                                </svg>
+                            </div>
+                            <div class="emblem-face peugeot-face">
+                                <svg viewBox="0 0 100 100" class="emblem-svg">
+                                    <path d="M 50 8 L 82 24 L 82 62 C 82 78 50 92 50 92 C 50 92 18 78 18 62 L 18 24 Z" fill="#0c1122" stroke="#38bdf8" stroke-width="4"/>
+                                    <path d="M 42 30 C 45 28, 48 28, 52 30 L 56 32 L 60 30 L 62 34 L 58 38 L 64 42 L 56 46 L 56 54 L 64 56 L 62 60 L 52 58 L 48 64 L 42 64 L 46 56 L 38 52 L 40 46 L 46 44 L 42 36 Z" fill="#38bdf8"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
-                    <p class="brand-subtitle" style="margin-top: 4px;">CRM &amp; Seguimiento</p>
+                    <div>
+                        <div class="brand-logo">
+                            <span class="logo-text-fiat">BREZZA</span>
+                            <span class="logo-separator">&amp;</span>
+                            <span class="logo-text-peugeot">AUREA</span>
+                        </div>
+                        <p class="brand-subtitle" style="margin-top: 4px;">CRM &amp; Seguimiento</p>
+                    </div>
                 </div>
                 <button type="button" id="btn-close-sidebar-inline" style="background: transparent; border: none; color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 4px; border-radius: 4px; transition: var(--transition-smooth); margin-top: -12px;" title="Ocultar Menú">
                     <i data-lucide="chevron-left" style="width: 20px; height: 20px;"></i>

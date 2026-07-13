@@ -1912,3 +1912,66 @@ label {
     box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
 }
 
+/* Contenedor del Emblema 3D Rotativo */
+.brand-emblem-container {
+    width: 38px;
+    height: 38px;
+    perspective: 1000px;
+    flex-shrink: 0;
+}
+
+.brand-emblem-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    animation: spin-emblem 12s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.brand-emblem-container:hover .brand-emblem-inner {
+    animation-play-state: paused;
+}
+
+.emblem-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fiat-face {
+    transform: rotateY(0deg);
+}
+
+.peugeot-face {
+    transform: rotateY(180deg);
+}
+
+.emblem-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+@keyframes spin-emblem {
+    0% {
+        transform: rotateY(0deg);
+    }
+    45% {
+        transform: rotateY(0deg);
+    }
+    50% {
+        transform: rotateY(180deg);
+    }
+    95% {
+        transform: rotateY(180deg);
+    }
+    100% {
+        transform: rotateY(360deg);
+    }
+}
+
