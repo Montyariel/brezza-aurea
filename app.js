@@ -1308,17 +1308,43 @@ function startBrezzaAurea() {
                 return;
             }
 
-            // Crear el cliente
-            const newClient = db.addClient({
-                name: newName,
-                phone: newPhone,
-                email: newEmail,
-                brandInterest: brand,
-                modelInterest: model,
-                stage: "contacto",
-                birthday: ""
-            });
-            targetClientId = newClient.id;
+            // Validar si ya existe un cliente con el mismo nombre para evitar duplicaciones
+            const allClients = db.getClients();
+            const duplicate = allClients.find(c => c.name.toLowerCase().trim() === newName.toLowerCase().trim());
+
+            if (duplicate) {
+                targetClientId = duplicate.id;
+                // Actualizar los datos de contacto si se ingresaron nuevos datos
+                let updated = false;
+                if (newPhone && duplicate.phone !== newPhone) {
+                    duplicate.phone = newPhone;
+                    updated = true;
+                }
+                if (newEmail && duplicate.email !== newEmail) {
+                    duplicate.email = newEmail;
+                    updated = true;
+                }
+                if (updated) {
+                    duplicate.history.push({
+                        date: new Date().toISOString(),
+                        text: `Datos de contacto actualizados durante el agendamiento de cita.`
+                    });
+                    db.updateClient(duplicate);
+                }
+                console.log(`Cliente existente detectado ("${newName}"). Vinculando cita para evitar duplicados.`);
+            } else {
+                // Crear el cliente nuevo
+                const newClient = db.addClient({
+                    name: newName,
+                    phone: newPhone,
+                    email: newEmail,
+                    brandInterest: brand,
+                    modelInterest: model,
+                    stage: "contacto",
+                    birthday: ""
+                });
+                targetClientId = newClient.id;
+            }
         } else if (!targetClientId) {
             alert("Elegí un cliente válido, crack.");
             return;
@@ -1436,6 +1462,14 @@ function startBrezzaAurea() {
             const existing = db.getClientById(id);
             db.updateClient({ id, history: existing.history, ...clientData });
         } else {
+            // Validar si ya existe un cliente con el mismo nombre para evitar duplicaciones
+            const allClients = db.getClients();
+            const duplicate = allClients.find(c => c.name.toLowerCase().trim() === name.toLowerCase().trim());
+            if (duplicate) {
+                alert(`¡Alerta Brezza Aurea! Ya existe un cliente registrado con el nombre "${name}". Para evitar duplicados, buscalo en la lista o en el Pipeline.`);
+                return;
+            }
+
             const historyInit = [{
                 date: new Date().toISOString(),
                 text: `Lead ingresado al sistema. Canal: ${origin}.`

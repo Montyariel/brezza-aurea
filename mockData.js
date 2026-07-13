@@ -318,6 +318,7 @@ if (typeof window !== "undefined" && window.supabase && typeof SUPABASE_CONFIG !
 class Database {
     constructor() {
         this.init();
+        this.deduplicateClients();
         this.syncWithSupabase();
     }
 
@@ -437,6 +438,7 @@ class Database {
                 await supabaseClient.from('fp_appointments').insert(dbCompatibleAppts);
             }
 
+            this.deduplicateClients();
             console.log("¡Base de datos local sincronizada exitosamente con Supabase!");
             
             // Renderizar la UI si las funciones del frontend están cargadas
@@ -445,6 +447,65 @@ class Database {
             }
         } catch (err) {
             console.error("Fallo la sincronización con Supabase (corriendo en modo local):", err);
+        }
+    }
+
+    deduplicateClients() {
+        const clients = this.getClients();
+        if (clients.length === 0) return;
+
+        const uniqueClients = [];
+        const seenNames = new Set();
+        let hasDuplicates = false;
+
+        clients.forEach(c => {
+            const normalizedName = c.name.toLowerCase().trim();
+            if (!seenNames.has(normalizedName)) {
+                seenNames.add(normalizedName);
+                uniqueClients.push(c);
+            } else {
+                hasDuplicates = true;
+                const original = uniqueClients.find(oc => oc.name.toLowerCase().trim() === normalizedName);
+                if (original) {
+                    // Migrar citas del duplicado al original
+                    let appts = this.getAppointments();
+                    let apptsUpdated = false;
+                    appts = appts.map(a => {
+                        if (a.clientId === c.id) {
+                            a.clientId = original.id;
+                            apptsUpdated = true;
+                        }
+                        return a;
+                    });
+                    if (apptsUpdated) {
+                        this.saveAppointments(appts);
+                    }
+
+                    // Migrar operaciones del duplicado al original
+                    let ops = this.getOperations();
+                    let opsUpdated = false;
+                    ops = ops.map(o => {
+                        if (o.clientId === c.id) {
+                            o.clientId = original.id;
+                            opsUpdated = true;
+                        }
+                        return o;
+                    });
+                    if (opsUpdated) {
+                        this.saveOperations(ops);
+                    }
+                    
+                    // Fusionar historial
+                    if (c.history && c.history.length > 0) {
+                        original.history = [...original.history, ...c.history];
+                    }
+                }
+            }
+        });
+
+        if (hasDuplicates) {
+            console.log("Se detectaron y fusionaron clientes duplicados en la base de datos de Brezza Aurea.");
+            this.saveClients(uniqueClients);
         }
     }
 
