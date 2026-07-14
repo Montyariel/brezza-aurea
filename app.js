@@ -892,7 +892,7 @@ function startBrezzaAurea() {
 
                         // Si pasa a etapa "cierre" (Boleto) o "entrega", Nico festeja
                         if (targetStage === "cierre") {
-                            addAssistantSystemMessage(`¡Golazo de media cancha! ⚽🔥 Mandaste a <strong>${client.name}</strong> a la firma del boleto. ¡Aseguralo y pasale el link de reserva al toque antes de que vuele!`);
+                            addAssistantSystemMessage(`¡Excelente venta, crack! 🚗🔥 Mandaste a <strong>${client.name}</strong> a la firma del boleto. ¡Aseguralo y pasale el link de reserva al toque antes de que vuele!`);
                             
                             // Abrir automáticamente el modal de Operación de Venta si no existe una para este cliente
                             const existingOp = db.getOperationByClientId(client.id);
@@ -902,7 +902,7 @@ function startBrezzaAurea() {
                                 }, 1500);
                             }
                         } else if (targetStage === "entrega") {
-                            addAssistantSystemMessage(`¡GOLAZOOO! 🏟️🏆 El nuevo ${client.brandInterest} de <strong>${client.name}</strong> ya está listo para salir a la calle. ¡Qué gran laburo!`);
+                            addAssistantSystemMessage(`¡Espectacular! 🔑🏆 El nuevo ${client.brandInterest} de <strong>${client.name}</strong> ya está listo para salir a la calle. ¡Qué gran laburo!`);
                         }
 
                         renderAll();
@@ -1912,7 +1912,7 @@ function startBrezzaAurea() {
         try {
             reprogramar_evento(apptToReprog.id, nuevaFecha, nuevaHora);
             renderAll();
-            return `¡Golazo! Reprogramé la cita de <strong>${targetClient.name}</strong> (${apptToReprog.type}) para el <strong>${nuevaFecha} a las ${nuevaHora} hs</strong>. ¡La agenda ya se actualizó en pantalla! ⚽🔥`;
+            return `¡Listo crack! Reprogramé la cita de <strong>${targetClient.name}</strong> (${apptToReprog.type}) para el <strong>${nuevaFecha} a las ${nuevaHora} hs</strong>. ¡La agenda ya se actualizó en pantalla! 🚗🔥`;
         } catch (err) {
             return `¡Ojo crack! Intenté reprogramar la cita de <strong>${targetClient.name}</strong>, pero el sistema saltó con un límite de negocio: <strong>${err.message}</strong>`;
         }
