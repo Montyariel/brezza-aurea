@@ -375,9 +375,31 @@ class Database {
             // 3. Sincronizar Clientes (Leads)
             const { data: dbClients, error: cErr } = await supabaseClient.from('fp_clients').select('*');
             if (dbClients && dbClients.length > 0) {
-                this.saveClients(dbClients);
+                const formattedClients = dbClients.map(c => ({
+                    id: c.id,
+                    name: c.name,
+                    phone: c.phone,
+                    email: c.email,
+                    brandInterest: c.brand_interest || c.brandInterest || "",
+                    modelInterest: c.model_interest || c.modelInterest || "",
+                    origin: c.origin || "Web",
+                    stage: c.stage || "contacto",
+                    birthday: c.birthday || null,
+                    history: c.history || []
+                }));
+                this.saveClients(formattedClients);
             } else if (!cErr) {
-                await supabaseClient.from('fp_clients').insert(INITIAL_CLIENTS);
+                const dbCompatibleClients = INITIAL_CLIENTS.map(c => ({
+                    id: c.id,
+                    name: c.name,
+                    phone: c.phone,
+                    email: c.email || null,
+                    brand_interest: c.brandInterest,
+                    model_interest: c.modelInterest,
+                    stage: c.stage,
+                    history: c.history || []
+                }));
+                await supabaseClient.from('fp_clients').insert(dbCompatibleClients);
             }
 
             // 4. Sincronizar Operaciones
@@ -529,7 +551,17 @@ class Database {
         this.saveClients(clients);
 
         if (supabaseClient) {
-            supabaseClient.from('fp_clients').insert([newClient]).then(({ error }) => {
+            const dbCompatibleClient = {
+                id: newClient.id,
+                name: newClient.name,
+                phone: newClient.phone,
+                email: newClient.email || null,
+                brand_interest: newClient.brandInterest,
+                model_interest: newClient.modelInterest,
+                stage: newClient.stage || "contacto",
+                history: newClient.history || []
+            };
+            supabaseClient.from('fp_clients').insert([dbCompatibleClient]).then(({ error }) => {
                 if (error) console.error("Error al guardar cliente en Supabase:", error);
             });
         }
@@ -543,7 +575,17 @@ class Database {
         this.saveClients(clients);
 
         if (supabaseClient) {
-            supabaseClient.from('fp_clients').update(updatedClient).eq('id', updatedClient.id).then(({ error }) => {
+            const dbCompatibleClient = {
+                id: updatedClient.id,
+                name: updatedClient.name,
+                phone: updatedClient.phone,
+                email: updatedClient.email || null,
+                brand_interest: updatedClient.brandInterest,
+                model_interest: updatedClient.modelInterest,
+                stage: updatedClient.stage,
+                history: updatedClient.history || []
+            };
+            supabaseClient.from('fp_clients').update(dbCompatibleClient).eq('id', updatedClient.id).then(({ error }) => {
                 if (error) console.error("Error al actualizar cliente en Supabase:", error);
             });
         }

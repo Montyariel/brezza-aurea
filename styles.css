@@ -1696,6 +1696,49 @@ label {
         width: 95%;
         max-height: 95vh;
     }
+
+    /* Formularios en celulares */
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    /* Agenda en celulares */
+    .agenda-timeline-header {
+        padding: 12px 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .timeline-navigation {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .timeline-filters {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .agenda-timeline {
+        padding: 12px;
+    }
+
+    .hour-block {
+        gap: 10px;
+    }
+
+    .hour-label {
+        width: 45px;
+        font-size: 0.75rem;
+    }
+
+    .hour-appointments {
+        grid-template-columns: 1fr;
+        min-height: 50px;
+    }
 }
 
 /* ==========================================

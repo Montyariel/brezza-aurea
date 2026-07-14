@@ -97,11 +97,9 @@ def create_client(client_data: dict) -> ClientModel:
         "name": client_data["name"],
         "phone": client_data["phone"],
         "email": client_data.get("email"),
-        "brandInterest": client_data["brandInterest"],
-        "modelInterest": client_data["modelInterest"],
-        "origin": client_data.get("origin", "Asistente"),
+        "brand_interest": client_data.get("brandInterest") or client_data.get("brand_interest") or "",
+        "model_interest": client_data.get("modelInterest") or client_data.get("model_interest") or "",
         "stage": client_data.get("stage", "contacto"),
-        "birthday": client_data.get("birthday"),
         "history": client_data.get("history", [])
     }
     res = supabase_client.table("fp_clients").insert(db_client).execute()
@@ -111,11 +109,11 @@ def create_client(client_data: dict) -> ClientModel:
         name=c.get("name"),
         phone=c.get("phone"),
         email=c.get("email"),
-        brandInterest=c.get("brandInterest"),
-        modelInterest=c.get("modelInterest"),
-        origin=c.get("origin"),
+        brandInterest=c.get("brand_interest") or c.get("brandInterest") or "",
+        modelInterest=c.get("model_interest") or c.get("modelInterest") or "",
+        origin="Web",
         stage=c.get("stage"),
-        birthday=c.get("birthday"),
+        birthday=None,
         history=c.get("history") or []
     )
 
@@ -141,11 +139,11 @@ def update_client_stage(client_id: str, stage: str, history_entry: Optional[dict
             name=c.get("name"),
             phone=c.get("phone"),
             email=c.get("email"),
-            brandInterest=c.get("brandInterest"),
-            modelInterest=c.get("modelInterest"),
-            origin=c.get("origin"),
+            brandInterest=c.get("brand_interest") or c.get("brandInterest") or "",
+            modelInterest=c.get("model_interest") or c.get("modelInterest") or "",
+            origin="Web",
             stage=c.get("stage"),
-            birthday=c.get("birthday"),
+            birthday=None,
             history=c.get("history") or []
         )
     return None
@@ -159,11 +157,11 @@ def update_client_history(client_id: str, history: list) -> Optional[ClientModel
             name=c.get("name"),
             phone=c.get("phone"),
             email=c.get("email"),
-            brandInterest=c.get("brandInterest"),
-            modelInterest=c.get("modelInterest"),
-            origin=c.get("origin"),
+            brandInterest=c.get("brand_interest") or c.get("brandInterest") or "",
+            modelInterest=c.get("model_interest") or c.get("modelInterest") or "",
+            origin="Web",
             stage=c.get("stage"),
-            birthday=c.get("birthday"),
+            birthday=None,
             history=c.get("history") or []
         )
     return None
