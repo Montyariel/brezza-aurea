@@ -1571,6 +1571,28 @@ label {
         grid-template-columns: 100vw;
     }
     
+    /* Fondo oscuro traslúcido cuando el menú o el asistente están abiertos en celular */
+    .app-container::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(11, 15, 25, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 999;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .app-container:not(.sidebar-hidden)::before,
+    .app-container:not(.assistant-hidden)::before {
+        opacity: 1;
+        pointer-events: all;
+    }
+
     .sidebar {
         position: fixed;
         top: 0;
@@ -1624,6 +1646,55 @@ label {
     .kanban-board {
         grid-template-columns: repeat(5, 260px);
         overflow-x: auto;
+    }
+
+    /* Ajustes adicionales para celulares */
+    .main-header {
+        padding: 12px 16px;
+        gap: 12px;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-left {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+
+    .header-right {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+        gap: 8px;
+        justify-content: space-between;
+    }
+
+    .search-bar {
+        width: 100%;
+        max-width: none;
+        flex-grow: 1;
+        order: 2;
+    }
+
+    .view-container {
+        padding: 16px;
+    }
+
+    .dashboard-details-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+
+    .metrics-grid {
+        gap: 12px;
+    }
+
+    .modal-container {
+        padding: 16px;
+        width: 95%;
+        max-height: 95vh;
     }
 }
 

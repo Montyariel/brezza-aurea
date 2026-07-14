@@ -104,6 +104,26 @@ function startBrezzaAurea() {
                 localStorage.setItem("fp_assistant_hidden", "true");
             });
         }
+
+        // En celulares, cerrar los paneles si se hace clic en la sección principal
+        const mainContent = document.querySelector(".main-content");
+        if (mainContent) {
+            mainContent.addEventListener("click", (e) => {
+                if (window.innerWidth <= 900) {
+                    if (e.target.closest("#btn-toggle-sidebar") || e.target.closest("#btn-toggle-assistant")) {
+                        return;
+                    }
+                    if (!appContainer.classList.contains("sidebar-hidden")) {
+                        appContainer.classList.add("sidebar-hidden");
+                        localStorage.setItem("fp_sidebar_hidden", "true");
+                    }
+                    if (!appContainer.classList.contains("assistant-hidden")) {
+                        appContainer.classList.add("assistant-hidden");
+                        localStorage.setItem("fp_assistant_hidden", "true");
+                    }
+                }
+            });
+        }
     }
 
     // ============================================================================
@@ -164,6 +184,15 @@ function startBrezzaAurea() {
             ventas: "Ventas & Trámites de Gestoría"
         };
         pageTitle.textContent = titles[viewName];
+
+        // Cerrar sidebar al navegar en celulares
+        if (window.innerWidth <= 900) {
+            const appContainer = document.querySelector(".app-container");
+            if (appContainer) {
+                appContainer.classList.add("sidebar-hidden");
+                localStorage.setItem("fp_sidebar_hidden", "true");
+            }
+        }
 
         renderAll();
     }
