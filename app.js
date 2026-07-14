@@ -1670,15 +1670,12 @@ function startBrezzaAurea() {
         });
 
         btnBriefing.addEventListener("click", () => {
-            addChatMessage("/hoy", "user");
-            setTimeout(() => {
-                const reply = procesarBriefingMatutino();
-                addChatMessage(reply, "assistant");
-            }, 600);
+            inputText.value = "/hoy";
+            handleUserChatMessage();
         });
     }
 
-    function handleUserChatMessage() {
+    async function handleUserChatMessage() {
         const input = document.getElementById("assistant-input-text");
         const messageText = input.value.trim();
         if (!messageText) return;
@@ -1686,10 +1683,42 @@ function startBrezzaAurea() {
         addChatMessage(messageText, "user");
         input.value = "";
 
-        setTimeout(() => {
-            const reply = getNLPResponse(messageText);
-            addChatMessage(reply, "assistant");
-        }, 600);
+        try {
+            // Detectar si estamos en un archivo local o en la nube para usar la URL adecuada
+            const apiBaseUrl = window.location.protocol === "file:" ? "http://localhost:8000" : "";
+            const response = await fetch(`${apiBaseUrl}/api/asistente/chat`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ message: messageText })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                addChatMessage(data.reply, "assistant");
+
+                // Sincronizar la UI con la base de datos de Supabase si el agente realizó cambios
+                if (typeof db !== "undefined" && typeof db.syncWithSupabase === "function") {
+                    await db.syncWithSupabase();
+                }
+                renderAll();
+            } else {
+                throw new Error("El backend respondió con un error.");
+            }
+        } catch (err) {
+            console.warn("Backend de FastAPI no disponible. Usando fallback NLP local. Detalle:", err);
+            // Fallback al motor NLP local original en app.js
+            setTimeout(() => {
+                let reply;
+                if (messageText === "/hoy") {
+                    reply = procesarBriefingMatutino();
+                } else {
+                    reply = getNLPResponse(messageText);
+                }
+                addChatMessage(reply, "assistant");
+            }, 600);
+        }
     }
 
     function addChatMessage(text, sender) {
