@@ -319,7 +319,17 @@ class Database {
     constructor() {
         this.init();
         this.deduplicateClients();
+        this.syncing = false;
         this.syncWithSupabase();
+        
+        // Polling de sincronización periódica cada 10 segundos en background
+        if (typeof window !== "undefined") {
+            setInterval(() => {
+                if (!this.syncing) {
+                    this.syncWithSupabase();
+                }
+            }, 10000);
+        }
     }
 
     init() {
@@ -353,6 +363,8 @@ class Database {
 
     async syncWithSupabase() {
         if (!supabaseClient) return;
+        if (this.syncing) return;
+        this.syncing = true;
         console.log("Sincronizando base de datos local con Supabase...");
         try {
             // 1. Sincronizar Usuarios
@@ -372,92 +384,141 @@ class Database {
                 await supabaseClient.from('fp_stock').insert(INITIAL_STOCK);
             }
 
-            // 3. Sincronizar Clientes (Leads)
+            // 3. Sincronizar Clientes (Leads) con mezcla bidireccional
             const { data: dbClients, error: cErr } = await supabaseClient.from('fp_clients').select('*');
-            if (dbClients && dbClients.length > 0) {
-                const formattedClients = dbClients.map(c => ({
-                    id: c.id,
-                    name: c.name,
-                    phone: c.phone,
-                    email: c.email,
-                    brandInterest: c.brand_interest || c.brandInterest || "",
-                    modelInterest: c.model_interest || c.modelInterest || "",
-                    origin: c.origin || "Web",
-                    stage: c.stage || "contacto",
-                    birthday: c.birthday || null,
-                    history: c.history || []
-                }));
-                this.saveClients(formattedClients);
-            } else if (!cErr) {
-                const dbCompatibleClients = INITIAL_CLIENTS.map(c => ({
-                    id: c.id,
-                    name: c.name,
-                    phone: c.phone,
-                    email: c.email || null,
-                    brand_interest: c.brandInterest,
-                    model_interest: c.modelInterest,
-                    stage: c.stage,
-                    history: c.history || []
-                }));
-                await supabaseClient.from('fp_clients').insert(dbCompatibleClients);
+            if (!cErr) {
+                const localClients = this.getClients();
+                const dbClientIds = new Set((dbClients || []).map(c => c.id));
+
+                // A. Clientes locales que NO están en Supabase -> Subirlos
+                const clientsToUpload = localClients.filter(c => !dbClientIds.has(c.id));
+                if (clientsToUpload.length > 0) {
+                    console.log(`Subiendo ${clientsToUpload.length} nuevos clientes locales a Supabase...`);
+                    const dbCompatibleClients = clientsToUpload.map(c => ({
+                        id: c.id,
+                        name: c.name,
+                        phone: c.phone,
+                        email: c.email || null,
+                        brand_interest: c.brandInterest,
+                        model_interest: c.modelInterest,
+                        stage: c.stage,
+                        history: c.history || []
+                    }));
+                    await supabaseClient.from('fp_clients').insert(dbCompatibleClients);
+                }
+
+                // B. Fusionar base de datos con locales
+                const mergedClientsMap = new Map();
+                localClients.forEach(c => mergedClientsMap.set(c.id, c));
+                if (dbClients) {
+                    dbClients.forEach(c => {
+                        mergedClientsMap.set(c.id, {
+                            id: c.id,
+                            name: c.name,
+                            phone: c.phone,
+                            email: c.email,
+                            brandInterest: c.brand_interest || c.brandInterest || "",
+                            modelInterest: c.model_interest || c.modelInterest || "",
+                            origin: c.origin || "Web",
+                            stage: c.stage || "contacto",
+                            birthday: c.birthday || null,
+                            history: c.history || []
+                        });
+                    });
+                }
+                
+                const mergedClientsList = Array.from(mergedClientsMap.values());
+                this.saveClients(mergedClientsList);
             }
 
-            // 4. Sincronizar Operaciones
+            // 4. Sincronizar Operaciones con mezcla bidireccional
             const { data: dbOps, error: oErr } = await supabaseClient.from('fp_operations').select('*');
-            if (dbOps && dbOps.length > 0) {
-                const formattedOps = dbOps.map(op => ({
-                    id: op.id,
-                    clientId: op.client_id,
-                    vehiculoId: op.vehiculo_id,
-                    price: op.price,
-                    paymentMethod: op.payment_method,
-                    docStatus: op.doc_status,
-                    deliveryStatus: op.delivery_status
-                }));
-                this.saveOperations(formattedOps);
-            } else if (!oErr) {
-                const dbCompatibleOps = INITIAL_OPERATIONS.map(op => ({
-                    id: op.id,
-                    client_id: op.clientId,
-                    vehiculo_id: op.vehiculoId,
-                    price: op.price,
-                    payment_method: op.paymentMethod,
-                    doc_status: op.docStatus,
-                    delivery_status: op.deliveryStatus
-                }));
-                await supabaseClient.from('fp_operations').insert(dbCompatibleOps);
+            if (!oErr) {
+                const localOps = this.getOperations();
+                const dbOpIds = new Set((dbOps || []).map(o => o.id));
+
+                // A. Operaciones locales que NO están en Supabase -> Subirlas
+                const opsToUpload = localOps.filter(o => !dbOpIds.has(o.id));
+                if (opsToUpload.length > 0) {
+                    console.log(`Subiendo ${opsToUpload.length} nuevas operaciones locales a Supabase...`);
+                    const dbCompatibleOps = opsToUpload.map(op => ({
+                        id: op.id,
+                        client_id: op.clientId,
+                        vehiculo_id: op.vehiculoId,
+                        price: op.price,
+                        payment_method: op.paymentMethod,
+                        doc_status: op.docStatus,
+                        delivery_status: op.deliveryStatus
+                    }));
+                    await supabaseClient.from('fp_operations').insert(dbCompatibleOps);
+                }
+
+                // B. Fusionar operaciones locales y de Supabase
+                const mergedOpsMap = new Map();
+                localOps.forEach(o => mergedOpsMap.set(o.id, o));
+                if (dbOps) {
+                    dbOps.forEach(op => {
+                        mergedOpsMap.set(op.id, {
+                            id: op.id,
+                            clientId: op.client_id,
+                            vehiculoId: op.vehiculo_id,
+                            price: op.price,
+                            paymentMethod: op.payment_method,
+                            docStatus: op.doc_status,
+                            deliveryStatus: op.delivery_status
+                        });
+                    });
+                }
+                
+                this.saveOperations(Array.from(mergedOpsMap.values()));
             }
 
-            // 5. Sincronizar Citas (Agenda)
+            // 5. Sincronizar Citas (Agenda) con mezcla bidireccional
             const { data: dbAppts, error: aErr } = await supabaseClient.from('fp_appointments').select('*');
-            if (dbAppts && dbAppts.length > 0) {
-                const formattedAppts = dbAppts.map(appt => ({
-                    id: appt.id,
-                    clientId: appt.client_id,
-                    brand: appt.brand,
-                    model: appt.model,
-                    date: appt.date,
-                    time: appt.time,
-                    type: appt.type,
-                    status: appt.status,
-                    notes: appt.notes,
-                    vehiculoId: appt.vehiculo_id
-                }));
-                this.saveAppointments(formattedAppts);
-            } else if (!aErr) {
-                const dbCompatibleAppts = INITIAL_APPOINTMENTS.map(appt => ({
-                    id: appt.id,
-                    client_id: appt.clientId,
-                    brand: appt.brand,
-                    model: appt.model,
-                    date: appt.date,
-                    time: appt.time,
-                    type: appt.type,
-                    status: appt.status,
-                    notes: appt.notes,
-                    vehiculo_id: appt.vehiculoId || null
-                }));
-                await supabaseClient.from('fp_appointments').insert(dbCompatibleAppts);
+            if (!aErr) {
+                const localAppts = this.getAppointments();
+                const dbApptIds = new Set((dbAppts || []).map(a => a.id));
+
+                // A. Citas locales que NO están en Supabase -> Subirlas
+                const apptsToUpload = localAppts.filter(a => !dbApptIds.has(a.id));
+                if (apptsToUpload.length > 0) {
+                    console.log(`Subiendo ${apptsToUpload.length} nuevas citas locales a Supabase...`);
+                    const dbCompatibleAppts = apptsToUpload.map(appt => ({
+                        id: appt.id,
+                        client_id: appt.clientId,
+                        brand: appt.brand,
+                        model: appt.model,
+                        date: appt.date,
+                        time: appt.time,
+                        type: appt.type,
+                        status: appt.status,
+                        notes: appt.notes,
+                        vehiculo_id: appt.vehiculoId || null
+                    }));
+                    await supabaseClient.from('fp_appointments').insert(dbCompatibleAppts);
+                }
+
+                // B. Fusionar citas locales y de Supabase
+                const mergedApptsMap = new Map();
+                localAppts.forEach(a => mergedApptsMap.set(a.id, a));
+                if (dbAppts) {
+                    dbAppts.forEach(appt => {
+                        mergedApptsMap.set(appt.id, {
+                            id: appt.id,
+                            clientId: appt.client_id,
+                            brand: appt.brand,
+                            model: appt.model,
+                            date: appt.date,
+                            time: appt.time,
+                            type: appt.type,
+                            status: appt.status,
+                            notes: appt.notes,
+                            vehiculoId: appt.vehiculo_id
+                        });
+                    });
+                }
+                
+                this.saveAppointments(Array.from(mergedApptsMap.values()));
             }
 
             this.deduplicateClients();
@@ -469,6 +530,8 @@ class Database {
             }
         } catch (err) {
             console.error("Fallo la sincronización con Supabase (corriendo en modo local):", err);
+        } finally {
+            this.syncing = false;
         }
     }
 
