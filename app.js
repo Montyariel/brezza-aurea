@@ -2109,11 +2109,17 @@ function startBrezzaAurea() {
         });
         
         // Procesar Login
-        formLogin.addEventListener("submit", (e) => {
+        formLogin.addEventListener("submit", async (e) => {
             try {
                 e.preventDefault();
                 const username = document.getElementById("login-username").value.trim();
                 const password = document.getElementById("login-password").value;
+                
+                // Forzar sincronización rápida con Supabase antes de validar
+                if (typeof db !== "undefined" && typeof db.syncWithSupabase === "function") {
+                    loginErrorMsg.textContent = "Verificando credenciales...";
+                    await db.syncWithSupabase();
+                }
                 
                 const user = db.validateUser(username, password);
                 if (user) {
@@ -2131,18 +2137,24 @@ function startBrezzaAurea() {
                     loginErrorMsg.textContent = "Credenciales incorrectas. Intentá de nuevo.";
                 }
             } catch (err) {
-                alert("Error al intentar iniciar sesión:\n" + err.message + "\n" + err.stack);
+                loginErrorMsg.textContent = "Error al conectar con el servidor.";
                 console.error(err);
             }
         });
         
         // Procesar Registro
-        formRegister.addEventListener("submit", (e) => {
+        formRegister.addEventListener("submit", async (e) => {
             try {
                 e.preventDefault();
                 const name = document.getElementById("register-name").value.trim();
                 const username = document.getElementById("register-username").value.trim();
                 const password = document.getElementById("register-password").value;
+                
+                // Forzar sincronización rápida antes de registrar para tener los usuarios actualizados
+                if (typeof db !== "undefined" && typeof db.syncWithSupabase === "function") {
+                    registerErrorMsg.textContent = "Validando usuario...";
+                    await db.syncWithSupabase();
+                }
                 
                 db.addUser({ username, password, name });
                 registerErrorMsg.style.color = "#4ade80";
@@ -2155,7 +2167,6 @@ function startBrezzaAurea() {
             } catch (err) {
                 registerErrorMsg.style.color = "var(--color-danger)";
                 registerErrorMsg.textContent = err.message;
-                alert("Error al intentar registrar usuario:\n" + err.message + "\n" + err.stack);
                 console.error(err);
             }
         });
